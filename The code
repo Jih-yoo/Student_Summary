@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 600px;
+        }
+        h2 { text-align: center; color: #333; }
+        label { font-weight: bold; color: #555; }
+        input[type="text"] {
+            width: 100%; padding: 8px; margin: 6px 0 15px 0;
+            border: 1px solid #ccc; border-radius: 4px;
+        }
+        input[type="submit"] {
+            width: 100%; background: #4CAF50; color: white;
+            padding: 10px; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 16px;
+        }
+        input[type="submit"]:hover { background: #45a049; }
+
+        .equivalent-box {
+            margin-top: -10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Student Form</h2>
+        <form method="post" action="">
+            <label for="name">Firstname:</label><br>
+            <input type="text" name="name" required><br>
+
+            <label for="lastn">Lastname:</label><br>
+            <input type="text" name="lastn" required><br>
+
+            <label for="Student_Id">Student_ID:</label><br>
+            <input type="text" name="Student_Id" required><br>
+
+            <label for="Grade">Grade:</label><br>
+            <input type="text" name="Grade" id="Grade" required><br>
+            <div class="equivalent-box" id="equivalentBox">Equivalent: —</div>
+
+            <input type="submit" name="submit" value="Send">
+        </form>
+
+        <?php
+        if (isset($_POST['submit'])) {
+            $conn = new mysqli("localhost", "root", "", "csdb_geone");
+            if ($conn->connect_error) { die("Die! " . $conn->connect_error); }
+
+            $name = htmlspecialchars($_POST['name']);
+            $lastn = htmlspecialchars($_POST['lastn']);
+            $Student_Id = htmlspecialchars($_POST['Student_Id']);
+            $Grade = floatval($_POST['Grade']); // numeric grade
+
+            // INSERT only grade
+            $sql = "INSERT INTO cstbl_geone (Firstname, Lastname, Student_Id, Grade) 
+                    VALUES ('$name', '$lastn', '$Student_Id', '$Grade')";
+            if ($conn->query($sql) === TRUE) {
+                echo "<p style='color:green;'>Record inserted successfully!</p>";
+            } else {
+                echo "<p style='color:red;'>Error: " . $conn->error . "</p>";
+            }
+
+            // DISPLAY records
+            $sql1 = "SELECT id, Firstname, Lastname, Student_Id, Grade, Registration_Date FROM cstbl_geone";
+            $result = $conn->query($sql1);
+
+            if ($result && $result->num_rows > 0) {
+                echo "<table>";
+                echo "<tr><th>ID</th><th>Firstname</th><th>Lastname</th><th>Student ID</th><th>Grade</th><th>Registration Date</th></tr>";
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . $row["id"] . "</td>";
+                    echo "<td>" . $row["Firstname"] . "</td>";
+                    echo "<td>" . $row["Lastname"] . "</td>";
+                    echo "<td>" . $row["Student_Id"] . "</td>";
+                    echo "<td>" . $row["Grade"] . "</td>";
+                    echo "<td>" . $row["Registration_Date"] . "</td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            } else {
+                echo "<p style='color:red;'>0 results or query error: " . $conn->error . "</p>";
+            }
+
+            $conn->close();
+        }
+        ?>
+    </div>
+
+    <script>
+        const gradeInput = document.getElementById("Grade");
+        const equivalentBox = document.getElementById("equivalentBox");
+
+        gradeInput.addEventListener("input", function() {
+            let grade = parseFloat(gradeInput.value);
+            let equivalent = "—";
+
+            if (!isNaN(grade)) {
+                if (grade >= 97 && grade <= 100) {
+                    equivalent = "1.00";
+                } else if (grade >= 94 && grade <= 96.99) {
+                    equivalent = "1.25";
+                } else if (grade >= 91 && grade <= 93.99) {
+                    equivalent = "1.50";
+                } else if (grade >= 88 && grade <= 90.99) {
+                    equivalent = "1.75";
+                } else if (grade >= 85 && grade <= 87.99) {
+                    equivalent = "2.00";
+                } else if (grade >= 84 && grade <= 86.00) {
+                    equivalent = "2.25";
+                } else if (grade >= 82 && grade <= 83.99) {
+                    equivalent = "2.50";
+                } else if (grade >= 79 && grade <= 81.99) {
+                    equivalent = "2.75";
+                } else if (grade >= 75 && grade <= 78.99) {
+                    equivalent = "3.00";
+                } else {
+                    equivalent = "5.00 (Fail)";
+                }
+            }
+
+            equivalentBox.textContent = "Equivalent: " + equivalent;
+        });
+    </script>
+</body>
+</html>
